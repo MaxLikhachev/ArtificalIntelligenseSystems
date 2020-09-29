@@ -41,8 +41,10 @@
         (if (> ?x ?y)
         then
             (bind ?f (+ ?f (factorialNonRecursive (- ?x ?y))))
+            (return ?f)
         else
             (bind ?f (+ ?f (factorialNonRecursive (- ?y ?x))))
+            (return ?f)
         )
     else
         (printout t "NOT VALID ARGUMENTS" crlf)
