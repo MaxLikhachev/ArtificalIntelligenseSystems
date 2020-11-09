@@ -1,3 +1,4 @@
+; Lab_1
 ; 36. f(x) = x^2 + 1
 
 (deffunction validate (?value)
