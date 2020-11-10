@@ -139,5 +139,5 @@
 
 (defrule init-rule
     =>
-    (printout t "rating: " ?*rating* crlf)
+    (printout t "total rating: " ?*rating* crlf)
 )
