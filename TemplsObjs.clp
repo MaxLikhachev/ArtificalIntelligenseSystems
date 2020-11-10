@@ -24,5 +24,5 @@
       ?sum <- (object (is-a SUM))
       =>
       (bind ?total (send ?sum get-total))
-      (send ?sum put-total (+ ?total (* ?height ?width))))
+      (send ?sum put-total (+ ?total (* ?height ?width)))
 )
