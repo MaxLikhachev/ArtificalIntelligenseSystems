@@ -1,13 +1,6 @@
-; 1.8. Напишите программу для вычисления стоимости 13 карт, находящихся на руках игрока в бридж, с помощью метода подсчета очков. 
-; Тузы стоят 4 очка; 
-; короли – 3 очка; 
-; дамы – 2 очка;
-; валеты – 1 очко. 
-; Пустая масть (отсутствие карт одной масти) стоит 3 очка; 
-; масть с одной картой (одна карта определенной масти) – 2 очка; 
-; масть с двумя картами (две карты определенной масти) – 1 очко.
-
 (defglobal
+    ?*total-cards* = 13
+
     ?*ace-rate* = 4
     ?*king-rate* = 3
     ?*queen-rate* = 2
@@ -16,13 +9,6 @@
     ?*empty-suit-rate* = 3
     ?*one-suit-rate* = 2
     ?*two-suit-rate* = 1
-
-    ?*diamonds-count* = 0
-    ?*hearts-count* = 0
-    ?*spades-count* = 0
-    ?*clubs-count* = 0
-
-    ?*rating* = 0
 )
 
 (deftemplate card
@@ -49,95 +35,49 @@
     (card (suit ♦) (rank J))
 )
 
-(defrule diamonds-find-and-count-rule
-    ?diamonds-address <- (card (suit ♦) (rank ?))
+(defrule validate
+    (declare (salience 100))
     =>
-    (printout t "found diamonds card" crlf)
-    (bind ?*diamonds-count* (+ ?*diamonds-count* 1))
+    (if (neq (length$ (find-all-facts ((?card card)) TRUE)) ?*total-cards*) 
+    then  
+        (printout t "VALIDATION ERROR: cards less or more than " ?*total-cards* crlf) 
+        (halt)
+    else (printout t "VALIDATION OK" crlf)
+    )
 )
 
-(defrule hearts-find-and-count-rule
-    ?hearts-address <- (card (suit ♥︎) (rank ?))
-    =>
-    (printout t "found hearts card" crlf)
-    (bind ?*hearts-count* (+ ?*hearts-count* 1))
+(deffunction count-all-by-rank(?rank)
+    (return (length$ (find-all-facts ((?card card)) (eq ?card:rank ?rank))))
 )
 
-(defrule spades-find-and-count-rule
-    ?spades-address <- (card (suit ♠︎) (rank ?))
-    =>
-    (printout t "found spades card" crlf)
-    (bind ?*spades-count* (+ ?*spades-count* 1))
+(deffunction count-all-by-suit(?suit)
+    (return (length$ (find-all-facts ((?card card)) (eq ?card:suit ?suit))))
 )
 
-(defrule clubs-find-and-count-rule
-    ?club-address <- (card (suit ♣︎) (rank ?))
-    =>
-    (printout t "found clubs card" crlf)
-    (bind ?*clubs-count* (+ ?*clubs-count* 1))
+(deffunction rate-suit(?suit)
+    (bind ?rating 0)
+    (bind ?count (count-all-by-suit ?suit))
+    (switch ?count
+        (case 2 then (bind ?rating ?*two-suit-rate*))
+        (case 1 then (bind ?rating ?*one-suit-rate*))
+        (case 0 then (bind ?rating ?*empty-suit-rate*))
+    )
+    (return ?rating)
 )
 
-(defrule ace-find-and-rate-rule
-    ?ace-address <- (card (suit ?) (rank A))
+(defrule count-all
     =>
-    (printout t "found ace card" crlf)
-    (bind ?*rating* (+ ?*rating* ?*ace-rate*))
-)
+    (bind ?rating 0)
 
-(defrule king-find-and-rate-rule
-    ?king-address <- (card (suit ?) (rank K))
-    =>
-    (printout t "found king card" crlf)
-    (bind ?*rating* (+ ?*rating* ?*king-rate*))
-)
+    (bind ?rating (+ ?rating (* (count-all-by-rank J) ?*jack-rate*)))
+    (bind ?rating (+ ?rating (* (count-all-by-rank Q) ?*queen-rate*)))
+    (bind ?rating (+ ?rating (* (count-all-by-rank K) ?*king-rate*)))
+    (bind ?rating (+ ?rating (* (count-all-by-rank A) ?*ace-rate*)))
 
-(defrule queen-find-and-rate-rule
-    ?queen-address <- (card (suit ?) (rank Q))
-    =>
-    (printout t "found queen card" crlf)
-    (bind ?*rating* (+ ?*rating* ?*queen-rate*))
-)
+    (bind ?rating (+ ?rating (rate-suit ♦)))
+    (bind ?rating (+ ?rating (rate-suit ♥︎)))
+    (bind ?rating (+ ?rating (rate-suit ♠︎)))
+    (bind ?rating (+ ?rating (rate-suit ♣︎)))
 
-(defrule jack-find-and-rate-rule
-    ?jack-address <- (card (suit ?) (rank J))
-    =>
-    (printout t "found jack card" crlf)
-    (bind ?*rating* (+ ?*rating* ?*jack-rate*))
-)
-
-(defrule diamonds-rate-rule
-    =>
-    (printout t "total diamonds cards: " ?*diamonds-count* crlf)
-    (if (= ?*diamonds-count* 2) then (bind ?*rating* (+ ?*rating* ?*two-suit-rate*)))
-    (if (= ?*diamonds-count* 1) then (bind ?*rating* (+ ?*rating* ?*one-suit-rate*)))
-    (if (= ?*diamonds-count* 0) then (bind ?*rating* (+ ?*rating* ?*empty-suit-rate*)))
-)
-
-(defrule hearts-rate-rule
-    =>
-    (printout t "total hearts cards: " ?*hearts-count* crlf)
-    (if (= ?*hearts-count* 2) then (bind ?*rating* (+ ?*rating* ?*two-suit-rate*)))
-    (if (= ?*hearts-count* 1) then (bind ?*rating* (+ ?*rating* ?*one-suit-rate*)))
-    (if (= ?*hearts-count* 0) then (bind ?*rating* (+ ?*rating* ?*empty-suit-rate*)))
-)
-
-(defrule spades-rate-rule
-    =>
-    (printout t "total spades cards: " ?*spades-count* crlf)
-    (if (= ?*spades-count* 2) then (bind ?*rating* (+ ?*rating* ?*two-suit-rate*)))
-    (if (= ?*spades-count* 1) then (bind ?*rating* (+ ?*rating* ?*one-suit-rate*)))
-    (if (= ?*spades-count* 0) then (bind ?*rating* (+ ?*rating* ?*empty-suit-rate*)))
-)
-
-(defrule clubs-rate-rule
-    =>
-    (printout t "total clubs cards: " ?*clubs-count* crlf)    
-    (if (= ?*clubs-count* 2) then (bind ?*rating* (+ ?*rating* ?*two-suit-rate*)))
-    (if (= ?*clubs-count* 1) then (bind ?*rating* (+ ?*rating* ?*one-suit-rate*)))
-    (if (= ?*clubs-count* 0) then (bind ?*rating* (+ ?*rating* ?*empty-suit-rate*)))
-)
-
-(defrule init-rule
-    =>
-    (printout t "total rating: " ?*rating* crlf)
-)
+    (printout t "rating: " ?rating crlf)
+) 
