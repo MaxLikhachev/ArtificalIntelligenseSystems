@@ -28,7 +28,7 @@
     (return ?result)
 )
 
-(deffunction get-type(?side-a ?side-b ?side-c)
+(deffunction init-fact-type(?side-a ?side-b ?side-c)
     (bind ?equals-counter 0)
     (if (equal ?side-a ?side-b) then (bind ?equals-counter (+ ?equals-counter 1)))
     (if (equal ?side-b ?side-c) then (bind ?equals-counter (+ ?equals-counter 1)))
@@ -47,7 +47,7 @@
     (bind ?side-b (get-side ?point-a-x ?point-a-y ?point-c-x ?point-c-y))
     (bind ?side-c (get-side ?point-b-x ?point-b-y ?point-c-x ?point-c-y))
     (assert (sides (side-a ?side-a) (side-b ?side-b) (side-c ?side-c)))
-    (get-type ?side-a ?side-b ?side-c)
+    (init-fact-type ?side-a ?side-b ?side-c)
 )
 
 (deffacts init-triangles
